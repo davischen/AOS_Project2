@@ -243,16 +243,20 @@ int (*command_func[]) (char **,int) = {&run_cd,&set_path, &run_exit}; // Array o
 
 int set_path(char **args, int numArgs)
 {
+
 	if(args[1] == NULL){
         int j = 0;
         while(paths[j] != NULL){
-            paths[j] = NULL;
+            //paths[j] = NULL;
+            free(paths[j]);
             j++;
         }
+        paths[0]="";
     }
     int i = 0;
     while(args[i+1] != NULL){
-        paths[i] = malloc(sizeof(char*) * strlen(args[i + 1]));
+        //printf("%ld\n",strlen(args[i + 1]));
+        paths[i] = malloc(strlen(args[i+1]) + 1);// malloc(sizeof(char*) * strlen(args[i + 1]));
         strcpy(paths[i], args[i + 1]);
         //printf("%s;", paths[i]);
         i++;
@@ -325,7 +329,7 @@ int perform_command(char line[], int numArgs)
     }
     else{
         char *input;
-        input=trim(line);
+        input=line;
         tokens = splitLine(input);
 		result= command_direct(tokens,numArgs);
         free(tokens);
