@@ -9,16 +9,13 @@
 #include <fcntl.h>
 #define DELIM " \t\r\n\a"
 
-//The one and only error message
 char error_message[30] = "An error has occurred\n";
 
 void print_error(){
     fprintf(stderr,"An error has occurred\n");
 }
 
-//Global variable for paths
 char *paths[100] = {"/bin"};
-
 int run_cd(char **args,int);
 int set_path(char **args,int);
 int run_exit(char **args,int);
@@ -27,6 +24,9 @@ int execute_command(char *new_args[],char *redirect_args[]);
 int command_redirect_parallel(char* line, char* split_point);
 int command_parallel(char* ret, char* line);
 int command_direct(char **args, int numArgs);
+
+char *command_keyword[] = {"cd", "path","exit"};
+int (*command_func[]) (char **,int) = {&run_cd,&set_path, &run_exit}; // Array of function pointers for call from execShell
 
 char **splitLine(char *line)
 {
@@ -79,7 +79,6 @@ int lineSeperate(char* line, char* args[], char* delim) {
         return 0;
     return argsIndex;
 }
-
 int execute_command(char *new_args[],char *redirect_args[])
 {
     pid_t pid;
@@ -93,8 +92,6 @@ int execute_command(char *new_args[],char *redirect_args[])
         return -1;
     if (new_args[0] == NULL)
         return -1;
-
-    //printf("copy args\n");
     int i = 0;
     while(paths[i] != NULL){
         strcat(strcat(strcpy(full_path, paths[i]),"/"), new_args[0]);
@@ -106,9 +103,7 @@ int execute_command(char *new_args[],char *redirect_args[])
     }
     //Fork - Wait - Exec functions
     pid = fork();
-    //printf("pid=%d\n",pid);
     if (pid == 0) {
-        //printf("%s\n",redirect_args[0]);
         if(redirect_args){
             //Used 0600 for permissions and others to only create and write to file
             //printf("redirect_args %s\n",redirect_args[0]);
@@ -139,8 +134,6 @@ int execute_command(char *new_args[],char *redirect_args[])
         //Error forking
         print_error();
     }
-
-    //printf("after pid=%d\n",pid);
     free(full_path);
     free(final_path);
     return pid;
@@ -171,13 +164,10 @@ int command_parallel(char* ret, char* line){
     char* split_point = NULL;//malloc(100*sizeof(char));
     int pid[commands_total];
     for (int i = 0; i < commands_total; i++) {
-        //printf("===%s\n",commands_array[i]);
         if ((split_point = strchr(commands_array[i], '>'))){
             pid[i] = command_redirect_parallel( commands_array[i],split_point);
-            //printf("receive2= pid=%d\n",pid[i]);
             continue;
         }
-        //printf("execute %s\n",commands_array[i]);
         lineSeperate(commands_array[i], paramater_each, DELIM);
         pid[i] = execute_command(paramater_each,NULL);
     }
@@ -196,8 +186,6 @@ int command_parallel(char* ret, char* line){
     free(commands_array);
     return 0;
 }
-char *command_keyword[] = {"cd", "path","exit"};
-int (*command_func[]) (char **,int) = {&run_cd,&set_path, &run_exit}; // Array of function pointers for call from execShell
 
 int set_path(char **args, int numArgs)
 {
@@ -253,13 +241,9 @@ int numCommand() // Function to return number of builtin commands
 
 //This checks and runs the args
 int command_direct(char **args, int numArgs){
-    //Empty input
     if(args[0] == NULL){
         return 1;
     }
-    //printf("%s\n",args[0]);
-    //printf("%s\n",args[1]);
-    //Exit builtin
     for (int i=0; i< numCommand(); i++) 
     {
         if(strcmp(args[0], command_keyword[i])==0) 
@@ -282,7 +266,6 @@ int command_direct(char **args, int numArgs){
 }
 int perform_command(char line[], int numArgs)
 {
-    //printf("perform_command=%s\n",line);
     char *split_point=NULL;
     char **tokens;
     int result=0;
@@ -292,7 +275,6 @@ int perform_command(char line[], int numArgs)
     }
     else if ((split_point=strchr(line,'>')))
     {
-        //printf("%s",split_point);split_point='> output.9 output.10....';
         int pid = command_redirect_parallel(line,split_point);
         if(pid>0)
         {
@@ -319,9 +301,7 @@ int readfile(char filename[100], int numArgs)
     FILE *fptr;
     char line[200];
     fptr = fopen(filename, "r");
-    //
     int result=1;
-    //size_t size = 0;
     if (fptr == NULL)
     {
         print_error();
