@@ -9,8 +9,6 @@
 #include <fcntl.h>
 #define DELIM " \t\r\n\a"
 
-char error_message[30] = "An error has occurred\n";
-
 void print_error(){
     fprintf(stderr,"An error has occurred\n");
 }
