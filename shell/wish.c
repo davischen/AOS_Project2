@@ -24,7 +24,7 @@ int command_parallel(char* ret, char* line);
 int command_direct(char **args, int numArgs);
 
 char *command_keyword[] = {"cd", "path","exit"};
-int (*command_func[]) (char **,int) = {&run_cd,&set_path, &run_exit}; // Array of function pointers for call from execShell
+int (*command_func[]) (char **,int) = {&run_cd,&set_path, &run_exit};
 
 char **splitLine(char *line)
 {
