@@ -8,12 +8,13 @@
 #include <sys/wait.h>
 #include <fcntl.h>
 #define DELIM " \t\r\n\a"
+#define MAX_SIZE 128
 
 void print_error(){
     fprintf(stderr,"An error has occurred\n");
 }
 
-char *paths[100] = {"/bin"};
+char *paths[MAX_SIZE] = {"/bin"};
 int run_cd(char **args,int);
 int set_path(char **args,int);
 int run_exit(char **args,int);
@@ -61,27 +62,27 @@ char **splitLine(char *line)
 }
 int lineSeperate(char* line, char* args[], char* delim) {
     char *save_result;
-    int argsIndex = 0;
-    //args = malloc(100*sizeof(char*));
+    int args_total = 0;
+    //args = malloc(MAX_SIZE*sizeof(char*));
     if (!args)
-        args = malloc(100*sizeof(char));
-    args[argsIndex] = strtok_r(line, delim, &save_result);
-    argsIndex++;
+        args = malloc(MAX_SIZE*sizeof(char));
+    args[args_total] = strtok_r(line, delim, &save_result);
+    args_total++;
     while(1){
-        args[argsIndex] = strtok_r(NULL, delim,&save_result);
-        if (args[argsIndex] == NULL)
+        args[args_total] = strtok_r(NULL, delim,&save_result);
+        if (args[args_total] == NULL)
             break;
-        argsIndex++;
+        args_total++;
     }
     if (args[0] == NULL)
         return 0;
-    return argsIndex;
+    return args_total;
 }
 int execute_command(char *new_args[],char *redirect_args[])
 {
     pid_t pid;
-    char *full_path = malloc(sizeof(char)*100);
-    char *final_path = malloc(sizeof(char)*100);
+    char *full_path = malloc(sizeof(char)*MAX_SIZE);
+    char *final_path = malloc(sizeof(char)*MAX_SIZE);
     if (paths[0] == NULL){
         print_error();
         return -1;
@@ -138,8 +139,8 @@ int execute_command(char *new_args[],char *redirect_args[])
 }
 int command_redirect_parallel(char* line, char* split_point)
 {
-    char* Args_command[100];
-    char* Args_parameter[100];
+    char* Args_command[MAX_SIZE];
+    char* Args_parameter[MAX_SIZE];
     split_point[0] = '\0';
     split_point = split_point + 1;
     int argsNum = lineSeperate(line, Args_command,DELIM);
@@ -156,9 +157,9 @@ int command_redirect_parallel(char* line, char* split_point)
     return pid;
 }
 int command_parallel(char* ret, char* line){
-    char** commands_array = malloc(100*sizeof(char*));
+    char** commands_array = malloc(MAX_SIZE*sizeof(char*));
     int commands_total = lineSeperate(line, commands_array,"&");
-    char** paramater_each = malloc(50*sizeof(char*));
+    char** paramater_each = malloc(MAX_SIZE*sizeof(char*));//50
     char* split_point = NULL;//malloc(100*sizeof(char));
     int pid[commands_total];
     for (int i = 0; i < commands_total; i++) {
@@ -297,7 +298,7 @@ int perform_command(char line[], int numArgs)
 int readfile(char filename[100], int numArgs)
 {
     FILE *fptr;
-    char line[200];
+    //char line[200];//200
     fptr = fopen(filename, "r");
     int result=1;
     if (fptr == NULL)
@@ -308,7 +309,9 @@ int readfile(char filename[100], int numArgs)
     }
     else
     {
-        while(fgets(line, sizeof(line), fptr)!= NULL)
+        size_t line_size = MAX_SIZE;
+        char *line = malloc(sizeof(char) * MAX_SIZE);
+        while(fgets(line, line_size, fptr)!= NULL)
         {
             if ((strcmp(line, "\n") == 0) || (strcmp(line, "") == 0))
                 continue;
@@ -317,6 +320,10 @@ int readfile(char filename[100], int numArgs)
                 line[strlen(line) - 1] = '\0';
             //exit if EOF is read
             if (line[0] == EOF){
+                if(line)
+                {
+                    free(line);
+                }
                 return 1;
             }
             //printf("%s\n",line);
@@ -333,7 +340,15 @@ int readfile(char filename[100], int numArgs)
         int size = ftell(fptr);
         if (0 == size) {
             print_error();
+            if(line)
+            {
+                free(line);
+            }
             return 0;
+        }
+        if(line)
+        {
+            free(line);
         }
             
     }
