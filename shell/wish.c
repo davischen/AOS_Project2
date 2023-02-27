@@ -116,19 +116,19 @@ int execute_command(char *new_args[],char *redirect_args[])
             else{
                 dup2(fd_out, STDOUT_FILENO);   //make stdout go to file
                 //dup2(fd_out, 2);   //make stderr go to file
-                if (execvp(final_path, new_args) == -1) {
+                if (execv(final_path, new_args) == -1) {
                     print_error();
                 }
                 close(fd_out); 
             }
         }
         else{
-            if (execvp(final_path, new_args) == -1) {
+            if (execv(final_path, new_args) == -1) {
                 print_error();
             }
         }
         
-        exit(EXIT_FAILURE);
+        //exit(EXIT_FAILURE);
     } else if (pid < 0) {
         //Error forking
         print_error();
@@ -295,7 +295,7 @@ int perform_command(char line[], int numArgs)
     free(split_point);
     return result;
 }
-int readfile(char filename[100], int numArgs)
+int readfile(char filename[MAX_SIZE], int numArgs)
 {
     FILE *fptr;
     //char line[200];//200
