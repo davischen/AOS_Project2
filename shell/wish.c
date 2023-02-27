@@ -29,20 +29,20 @@ int (*command_func[]) (char **,int) = {&run_cd,&set_path, &run_exit};
 
 char **splitLine(char *line)
 {
-    char **tokens = (char **)malloc(sizeof(char *) * 64);
-    if (!tokens)
+    char **input_tokens = (char **)malloc(sizeof(char *) * MAX_SIZE);
+    if (!input_tokens)
     {
         print_error();
-        free(tokens);
+        free(input_tokens);
         exit(EXIT_FAILURE);
     }
 
-    char *token;
-    int pos = 0, bufsize = 64;
-    token = strtok(line, DELIM);
-    while (token != NULL)
+    char *token_strok;
+    int pos = 0, bufsize = MAX_SIZE;
+    token_strok = strtok(line, DELIM);
+    while (token_strok != NULL)
     {
-        tokens[pos] = token;
+        input_tokens[pos] = token_strok;
         pos ++;
         if (pos >= bufsize)
         {
@@ -54,11 +54,11 @@ char **splitLine(char *line)
             exit(EXIT_FAILURE);
             }
         }
-        token = strtok(NULL, DELIM);
+        token_strok = strtok(NULL, DELIM);
     }
-    tokens[pos] = NULL;
-    free(token);
-    return tokens;
+    input_tokens[pos] = NULL;
+    free(token_strok);
+    return input_tokens;
 }
 int lineSeperate(char* line, char* args[], char* delim) {
     char *save_result;
@@ -266,7 +266,7 @@ int command_direct(char **args, int numArgs){
 int perform_command(char line[], int numArgs)
 {
     char *split_point=NULL;
-    char **tokens;
+    char **input_tokens;
     int result=0;
     if ((split_point=strchr(line, '&'))){
                 
@@ -288,9 +288,9 @@ int perform_command(char line[], int numArgs)
     else{
         char *input;
         input=line;
-        tokens = splitLine(input);
-        result= command_direct(tokens,numArgs);
-        free(tokens);
+        input_tokens = splitLine(input);
+        result= command_direct(input_tokens,numArgs);
+        free(input_tokens);
     }
     free(split_point);
     return result;
@@ -328,12 +328,12 @@ int readfile(char filename[100], int numArgs)
             }
             //printf("%s\n",line);
             //input = trim(line);
-            ////trim_tokens(
+            ////trim_input_tokens(
             /*printf("=input=%s\n",input);
-            printf("=0=%s\n",tokens[0]);
-            printf("=1=%s\n",tokens[1]);
-            printf("=2=%s\n",tokens[2]);
-            printf("=3=%s\n",tokens[3]);*/
+            printf("=0=%s\n",input_tokens[0]);
+            printf("=1=%s\n",input_tokens[1]);
+            printf("=2=%s\n",input_tokens[2]);
+            printf("=3=%s\n",input_tokens[3]);*/
             result=perform_command(line,numArgs);
         }
         fseek (fptr, 0, SEEK_END);
@@ -354,7 +354,7 @@ int readfile(char filename[100], int numArgs)
     }
     fclose(fptr);
     //free(input);
-    //free(tokens);
+    //free(input_tokens);
     return result;
 }
 
