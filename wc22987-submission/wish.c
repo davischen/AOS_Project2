@@ -118,6 +118,9 @@ int execute_command(char *new_args[],char *redirect_args[])
                 //dup2(fd_out, 2);   //make stderr go to file
                 if (execv(final_path, new_args) == -1) {
                     print_error();
+                    free(full_path);
+                    free(final_path);
+                    exit(EXIT_FAILURE);
                 }
                 close(fd_out); 
             }
@@ -125,13 +128,19 @@ int execute_command(char *new_args[],char *redirect_args[])
         else{
             if (execv(final_path, new_args) == -1) {
                 print_error();
+
+                free(full_path);
+                free(final_path);   
+                exit(EXIT_FAILURE);
             }
         }
         
-        //exit(EXIT_FAILURE);
     } else if (pid < 0) {
         //Error forking
-        print_error();
+        print_error();                
+        free(full_path);
+        free(final_path);   
+        exit(EXIT_FAILURE);
     }
     free(full_path);
     free(final_path);
